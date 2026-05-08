@@ -9,8 +9,16 @@ import 'package:whatsapp2_0/features/chats/presentation/screens/chat_screen.dart
 import 'package:whatsapp2_0/features/chats/presentation/screens/create_group_screen.dart';
 import 'package:whatsapp2_0/features/chats/presentation/screens/group_info_screen.dart';
 import 'package:whatsapp2_0/features/chats/presentation/screens/search_screen.dart';
+import 'package:whatsapp2_0/features/chats/presentation/screens/security_code_screen.dart';
 import 'package:whatsapp2_0/features/contacts/presentation/screens/contact_list_screen.dart';
 import 'package:whatsapp2_0/features/media/presentation/screens/media_viewer_screen.dart';
+import 'package:whatsapp2_0/features/profile/presentation/screens/account_settings_screen.dart';
+import 'package:whatsapp2_0/features/profile/presentation/screens/privacy_settings_screen.dart';
+import 'package:whatsapp2_0/features/profile/presentation/screens/profile_screen.dart';
+import 'package:whatsapp2_0/features/profile/presentation/screens/two_step_verification_screen.dart';
+import 'package:whatsapp2_0/features/status/presentation/screens/status_creator_screen.dart';
+import 'package:whatsapp2_0/features/status/presentation/screens/status_list_screen.dart';
+import 'package:whatsapp2_0/features/status/presentation/screens/status_viewer_screen.dart';
 
 // ---------------------------------------------------------------------------
 // Route name constants
@@ -140,8 +148,11 @@ GoRouter createRouter() {
               GoRoute(
                 path: 'security-code',
                 name: 'securityCode',
-                builder: (context, state) =>
-                    const _PlaceholderScreen(title: 'Security Code'),
+                builder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>?;
+                  final contactName = extra?['contactName'] as String? ?? 'Contact';
+                  return SecurityCodeScreen(contactName: contactName);
+                },
               ),
             ],
           ),
@@ -166,13 +177,12 @@ GoRouter createRouter() {
       GoRoute(
         path: AppRoutes.statusList,
         name: 'statusList',
-        builder: (context, state) => const _PlaceholderScreen(title: 'Status'),
+        builder: (context, state) => const StatusListScreen(),
         routes: [
           GoRoute(
             path: 'create',
             name: 'statusCreator',
-            builder: (context, state) =>
-                const _PlaceholderScreen(title: 'Create Status'),
+            builder: (context, state) => const StatusCreatorScreen(),
           ),
           GoRoute(
             path: ':userId/:statusId',
@@ -180,7 +190,10 @@ GoRouter createRouter() {
             builder: (context, state) {
               final userId = state.pathParameters['userId']!;
               final statusId = state.pathParameters['statusId']!;
-              return _PlaceholderScreen(title: 'Status: $userId / $statusId');
+              return StatusViewerScreen(
+                userId: userId,
+                statusId: statusId,
+              );
             },
           ),
         ],
@@ -216,25 +229,22 @@ GoRouter createRouter() {
       GoRoute(
         path: AppRoutes.profile,
         name: 'profile',
-        builder: (context, state) => const _PlaceholderScreen(title: 'Profile'),
+        builder: (context, state) => const ProfileScreen(),
         routes: [
           GoRoute(
             path: 'privacy',
             name: 'privacySettings',
-            builder: (context, state) =>
-                const _PlaceholderScreen(title: 'Privacy Settings'),
+            builder: (context, state) => const PrivacySettingsScreen(),
           ),
           GoRoute(
             path: 'two-step',
             name: 'twoStepVerification',
-            builder: (context, state) =>
-                const _PlaceholderScreen(title: 'Two-Step Verification'),
+            builder: (context, state) => const TwoStepVerificationScreen(),
           ),
           GoRoute(
             path: 'account',
             name: 'accountSettings',
-            builder: (context, state) =>
-                const _PlaceholderScreen(title: 'Account Settings'),
+            builder: (context, state) => const AccountSettingsScreen(),
           ),
         ],
       ),
