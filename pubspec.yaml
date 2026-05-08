@@ -49,9 +49,8 @@ dependencies:
   # Media
   image_picker: ^1.1.2
   flutter_image_compress: ^2.4.0
-  # ffmpeg_kit_flutter is available as platform-specific variants:
-  # Use ffmpeg_kit_flutter_min for a smaller build
-  ffmpeg_kit_flutter_min: ^6.0.3
+  # ffmpeg_kit_flutter is discontinued - will be replaced with alternative video compression
+  # ffmpeg_kit_flutter_min: ^6.0.3
 
   # WebRTC for calls
   flutter_webrtc: ^0.12.5
@@ -66,7 +65,7 @@ dependencies:
 
   # Media feature
   file_picker: ^8.1.7
-  record: ^5.2.0
+  record: ^6.2.0
   geolocator: ^13.0.4
 
 dev_dependencies:
