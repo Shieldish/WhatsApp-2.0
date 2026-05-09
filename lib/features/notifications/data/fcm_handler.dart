@@ -21,14 +21,17 @@ class FcmHandler {
     required FirebaseMessaging messaging,
     required FlutterLocalNotificationsPlugin localNotifications,
     required FlutterSecureStorage secureStorage,
-  })  : _messaging = messaging,
-        _localNotifications = localNotifications,
-        _secureStorage = secureStorage;
+  }) : _messaging = messaging,
+       _localNotifications = localNotifications,
+       _secureStorage = secureStorage;
 
   final FirebaseMessaging _messaging;
+  // ignore: unused_field
   final FlutterLocalNotificationsPlugin _localNotifications;
+  // ignore: unused_field
   final FlutterSecureStorage _secureStorage;
 
+  // ignore: unused_field
   static const String _dndKey = 'dnd_enabled';
   static const String _defaultChannelId = 'messages';
   static const String _callChannelId = 'calls';
@@ -57,7 +60,9 @@ class FcmHandler {
       }
 
       // Set up local notification channel
-      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const androidSettings = AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
       const iosSettings = DarwinInitializationSettings(
         requestAlertPermission: false,
         requestBadgePermission: false,
@@ -98,8 +103,10 @@ class FcmHandler {
 
   /// Creates the Android notification channels.
   Future<void> _createNotificationChannels() async {
-    final androidPlatform = _localNotifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlatform = _localNotifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
 
     if (androidPlatform != null) {
       await androidPlatform.createNotificationChannel(
@@ -151,9 +158,8 @@ class FcmHandler {
     }
 
     final title = data['senderName'] as String? ?? 'WhatsApp';
-    final body = data['preview'] as String? ??
-        notification?.title ??
-        'New message';
+    final body =
+        data['preview'] as String? ?? notification?.title ?? 'New message';
 
     _localNotifications.show(
       conversationId.hashCode,
@@ -189,10 +195,9 @@ class FcmHandler {
   void _handleNotificationData(Map<String, dynamic> data) {
     final conversationId = data['conversationId'] as String?;
     if (conversationId != null) {
-      _actionController.add(NotificationAction(
-        conversationId: conversationId,
-        action: 'open',
-      ));
+      _actionController.add(
+        NotificationAction(conversationId: conversationId, action: 'open'),
+      );
     }
   }
 
@@ -200,10 +205,9 @@ class FcmHandler {
   void _handleNotificationTap(NotificationResponse response) {
     final conversationId = response.payload ?? '';
     if (conversationId.isNotEmpty) {
-      _actionController.add(NotificationAction(
-        conversationId: conversationId,
-        action: 'open',
-      ));
+      _actionController.add(
+        NotificationAction(conversationId: conversationId, action: 'open'),
+      );
     }
   }
 
@@ -218,5 +222,6 @@ class FcmHandler {
     return false;
   }
 
-  Stream<NotificationAction> get notificationActions => _actionController.stream;
+  Stream<NotificationAction> get notificationActions =>
+      _actionController.stream;
 }

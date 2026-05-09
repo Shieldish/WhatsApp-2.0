@@ -11,12 +11,18 @@ import 'firebase_options.dart';
 /// Initialises Firebase before running the Flutter app. The [ProviderScope]
 /// wraps the entire widget tree so that Riverpod providers are accessible
 /// everywhere.
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    // Firebase n'est pas disponible (placeholder ou erreur de configuration).
+    // L'application continue sans Firebase pour éviter le freeze/crash.
+    debugPrint('Firebase initialization failed: $e');
+  }
 
   runApp(
     const ProviderScope(

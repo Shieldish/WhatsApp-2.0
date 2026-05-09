@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -62,10 +60,7 @@ class _StatusCreatorScreenState extends ConsumerState<StatusCreatorScreen> {
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'My Status',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('My Status', style: TextStyle(color: Colors.white)),
         actions: [
           TextButton(
             onPressed: _isPosting ? null : _postStatus,
@@ -104,10 +99,7 @@ class _StatusCreatorScreenState extends ConsumerState<StatusCreatorScreen> {
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       hintText: 'Type your status',
-                      hintStyle: TextStyle(
-                        color: Colors.white38,
-                        fontSize: 24,
-                      ),
+                      hintStyle: TextStyle(color: Colors.white38, fontSize: 24),
                       counterStyle: TextStyle(color: Colors.white38),
                     ),
                     onChanged: (_) => setState(() {}),
@@ -124,10 +116,7 @@ class _StatusCreatorScreenState extends ConsumerState<StatusCreatorScreen> {
                 children: [
                   const Text(
                     'Background',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                   const SizedBox(height: 8),
                   SizedBox(
@@ -136,7 +125,7 @@ class _StatusCreatorScreenState extends ConsumerState<StatusCreatorScreen> {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: _backgroundColours.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      separatorBuilder: (_, _) => const SizedBox(width: 8),
                       itemBuilder: (context, index) {
                         final colour = _backgroundColours[index];
                         final isSelected = colour == _backgroundColor;
@@ -153,10 +142,7 @@ class _StatusCreatorScreenState extends ConsumerState<StatusCreatorScreen> {
                               color: _parseColor(colour),
                               shape: BoxShape.circle,
                               border: isSelected
-                                  ? Border.all(
-                                      color: Colors.white,
-                                      width: 3,
-                                    )
+                                  ? Border.all(color: Colors.white, width: 3)
                                   : Border.all(color: Colors.white24),
                             ),
                             child: isSelected
@@ -190,23 +176,27 @@ class _StatusCreatorScreenState extends ConsumerState<StatusCreatorScreen> {
       // In production, get the actual user ID from SessionManager.
       const currentUserId = 'current_user';
 
-      await ref.read(postStatusProvider(PostStatusParams(
-        userId: currentUserId,
-        text: text,
-        backgroundColor: _backgroundColor,
-      )).future);
+      await ref.read(
+        postStatusProvider(
+          PostStatusParams(
+            userId: currentUserId,
+            text: text,
+            backgroundColor: _backgroundColor,
+          ),
+        ).future,
+      );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Status posted')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Status posted')));
         context.pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to post status: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to post status: $e')));
       }
     } finally {
       if (mounted) setState(() => _isPosting = false);

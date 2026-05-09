@@ -1,14 +1,13 @@
 {
-  "_comment": "PLACEHOLDER — Replace this file with your real google-services.json downloaded from the Firebase Console (https://console.firebase.google.com). This stub is provided so the project compiles without real Firebase credentials.",
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "whatsapp-clone-placeholder",
-    "storage_bucket": "whatsapp-clone-placeholder.appspot.com"
+    "project_number": "406238741974",
+    "project_id": "whatsapp2-0-c8826",
+    "storage_bucket": "whatsapp2-0-c8826.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "mobilesdk_app_id": "1:406238741974:android:87da17830b2ddd3cee5077",
         "android_client_info": {
           "package_name": "com.example.whatsapp2_0"
         }
@@ -16,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "PLACEHOLDER_API_KEY"
+          "current_key": "AIzaSyDrqiDCqVsbv6OmWT43BqSiHR1LTkW72Bk"
         }
       ],
       "services": {

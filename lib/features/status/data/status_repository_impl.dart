@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:whatsapp2_0/core/result.dart';
@@ -46,7 +45,7 @@ class StatusRepositoryImpl implements StatusRepository {
         'postedAt': Timestamp.fromDate(now),
         'expiresAt': Timestamp.fromDate(expiresAt),
         'viewers': {},
-        if (privacyList != null) 'privacyList': privacyList,
+        'privacyList': ?privacyList,
       };
 
       await _firestore
@@ -134,9 +133,7 @@ class StatusRepositoryImpl implements StatusRepository {
           .doc(userId)
           .collection('items')
           .doc(statusId)
-          .update({
-        'viewers.$viewerId': Timestamp.fromDate(DateTime.now()),
-      });
+          .update({'viewers.$viewerId': Timestamp.fromDate(DateTime.now())});
       return Ok(null);
     } on FirebaseException catch (e) {
       return Err(
@@ -159,15 +156,17 @@ class StatusRepositoryImpl implements StatusRepository {
         .orderBy('postedAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      final now = DateTime.now();
-      return snapshot.docs
-          .map((doc) => _docToStatusItem(doc, userId))
-          .where((item) => _expiryChecker.isVisible(
-        postedAt: item.postedAt,
-        queryTime: now,
-      ))
-          .toList();
-    });
+          final now = DateTime.now();
+          return snapshot.docs
+              .map((doc) => _docToStatusItem(doc, userId))
+              .where(
+                (item) => _expiryChecker.isVisible(
+                  postedAt: item.postedAt,
+                  queryTime: now,
+                ),
+              )
+              .toList();
+        });
   }
 
   @override
@@ -184,34 +183,34 @@ class StatusRepositoryImpl implements StatusRepository {
         .orderBy('postedAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      final now = DateTime.now();
-      final statusMap = <String, StatusItem>{};
+          final now = DateTime.now();
+          final statusMap = <String, StatusItem>{};
 
-      for (final doc in snapshot.docs) {
-        final userId = doc.reference.parent.parent?.id ?? '';
-        if (userId == currentUserId) continue; // Skip own statuses
+          for (final doc in snapshot.docs) {
+            final userId = doc.reference.parent.parent?.id ?? '';
+            if (userId == currentUserId) continue; // Skip own statuses
 
-        final item = _docToStatusItem(doc, userId);
+            final item = _docToStatusItem(doc, userId);
 
-        // Filter expired items
-        if (!_expiryChecker.isVisible(
-          postedAt: item.postedAt,
-          queryTime: now,
-        )) {
-          continue;
-        }
+            // Filter expired items
+            if (!_expiryChecker.isVisible(
+              postedAt: item.postedAt,
+              queryTime: now,
+            )) {
+              continue;
+            }
 
-        // Take only the most recent status per user
-        final key = item.userId;
-        final existing = statusMap[key];
-        if (existing == null || item.postedAt.isAfter(existing.postedAt)) {
-          statusMap[key] = item;
-        }
-      }
+            // Take only the most recent status per user
+            final key = item.userId;
+            final existing = statusMap[key];
+            if (existing == null || item.postedAt.isAfter(existing.postedAt)) {
+              statusMap[key] = item;
+            }
+          }
 
-      return statusMap.values.toList()
-        ..sort((a, b) => b.postedAt.compareTo(a.postedAt));
-    });
+          return statusMap.values.toList()
+            ..sort((a, b) => b.postedAt.compareTo(a.postedAt));
+        });
   }
 
   @override
@@ -228,16 +227,12 @@ class StatusRepositoryImpl implements StatusRepository {
           .get();
 
       if (!doc.exists) {
-        return Err(
-          StorageError(message: 'Status not found'),
-        );
+        return Err(StorageError(message: 'Status not found'));
       }
 
       final data = doc.data();
       if (data == null) {
-        return Err(
-          StorageError(message: 'Status data is null'),
-        );
+        return Err(StorageError(message: 'Status data is null'));
       }
 
       final postedAt = (data['postedAt'] as Timestamp).toDate();

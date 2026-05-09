@@ -158,7 +158,7 @@ class StatusListScreen extends ConsumerWidget {
           ),
           onTap: () {
             context.push(
-              '${AppRoutes.statusViewer.replaceFirst(':userId', currentUserId).replaceFirst(':statusId', latest.id)}',
+              AppRoutes.statusViewer.replaceFirst(':userId', currentUserId).replaceFirst(':statusId', latest.id),
             );
           },
         );
@@ -285,7 +285,7 @@ class StatusListScreen extends ConsumerWidget {
       ),
       onTap: () {
         context.push(
-          '${AppRoutes.statusViewer.replaceFirst(':userId', status.userId).replaceFirst(':statusId', status.id)}',
+          AppRoutes.statusViewer.replaceFirst(':userId', status.userId).replaceFirst(':statusId', status.id),
         );
       },
     );

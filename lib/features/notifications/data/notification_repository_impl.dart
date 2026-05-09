@@ -21,19 +21,21 @@ class NotificationRepositoryImpl implements NotificationRepository {
     required FlutterLocalNotificationsPlugin localNotifications,
     required FlutterSecureStorage secureStorage,
     FcmHandler? fcmHandler,
-  })  : _firestore = firestore,
-        _messaging = messaging,
-        _localNotifications = localNotifications,
-        _secureStorage = secureStorage,
-        _fcmHandler = fcmHandler ??
-            FcmHandler(
-              messaging: messaging,
-              localNotifications: localNotifications,
-              secureStorage: secureStorage,
-            );
+  }) : _firestore = firestore,
+       _messaging = messaging,
+       _localNotifications = localNotifications,
+       _secureStorage = secureStorage,
+       _fcmHandler =
+           fcmHandler ??
+           FcmHandler(
+             messaging: messaging,
+             localNotifications: localNotifications,
+             secureStorage: secureStorage,
+           );
 
   final FirebaseFirestore _firestore;
   final FirebaseMessaging _messaging;
+  // ignore: unused_field
   final FlutterLocalNotificationsPlugin _localNotifications;
   final FlutterSecureStorage _secureStorage;
   final FcmHandler _fcmHandler;
@@ -60,10 +62,10 @@ class NotificationRepositoryImpl implements NotificationRepository {
           .collection('fcmTokens')
           .doc(token)
           .set({
-        'token': token,
-        'platform': 'mobile',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+            'token': token,
+            'platform': 'mobile',
+            'createdAt': FieldValue.serverTimestamp(),
+          });
 
       return Ok(null);
     } catch (e) {
@@ -108,10 +110,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
           mutedUntil = DateTime(2099, 12, 31);
       }
 
-      await _firestore
-          .collection('conversations')
-          .doc(conversationId)
-          .update({'mutedUntil': Timestamp.fromDate(mutedUntil)});
+      await _firestore.collection('conversations').doc(conversationId).update({
+        'mutedUntil': Timestamp.fromDate(mutedUntil),
+      });
 
       return Ok(null);
     } catch (e) {
@@ -124,10 +125,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
     String conversationId,
   ) async {
     try {
-      await _firestore
-          .collection('conversations')
-          .doc(conversationId)
-          .update({'mutedUntil': FieldValue.delete()});
+      await _firestore.collection('conversations').doc(conversationId).update({
+        'mutedUntil': FieldValue.delete(),
+      });
 
       return Ok(null);
     } catch (e) {
