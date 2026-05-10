@@ -1,27 +1,26 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:whatsapp2_0/core/result.dart';
-import 'package:whatsapp2_0/core/router/app_router.dart';
+import 'package:whatsapp2_0/core/utils/conversation_id.dart';
 import 'package:whatsapp2_0/core/validators/phone_number_validator.dart';
 
-/// Screen shown when the user denies address-book permission.
-///
-/// Allows the user to manually enter a phone number in E.164 format to start
-/// a conversation directly.
-///
-/// Requirements: 2.3, 2.4
-class ManualContactEntryScreen extends StatefulWidget {
+class ManualContactEntryScreen extends ConsumerStatefulWidget {
   const ManualContactEntryScreen({super.key});
 
   @override
-  State<ManualContactEntryScreen> createState() =>
+  ConsumerState<ManualContactEntryScreen> createState() =>
       _ManualContactEntryScreenState();
 }
 
-class _ManualContactEntryScreenState extends State<ManualContactEntryScreen> {
+class _ManualContactEntryScreenState
+    extends ConsumerState<ManualContactEntryScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController(text: '+');
   bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -44,19 +43,50 @@ class _ManualContactEntryScreenState extends State<ManualContactEntryScreen> {
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
     final phone = _phoneController.text.trim();
 
-    // Navigate to the chat screen for this phone number.
-    // The conversationId is derived from the phone number for direct chats.
-    // In a real implementation, the use case would look up or create the
-    // conversation for this phone number.
-    if (mounted) {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('phoneNumber', isEqualTo: phone)
+          .limit(1)
+          .get();
+
+      if (!mounted) return;
+
+      if (snapshot.docs.isEmpty) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'No user found with that number. '
+              'Make sure they have registered.';
+        });
+        return;
+      }
+
+      final doc = snapshot.docs.first;
+      final userId = doc.id;
+      final displayName = (doc.data()['displayName'] as String?) ?? phone;
+      final myUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+      final convId = directConversationId(myUid, userId);
+
       setState(() => _isLoading = false);
-      // Navigate to chat list and let the user find or create the conversation.
-      // For now, we navigate to the chat list with the phone number as extra.
-      context.go(AppRoutes.chatList, extra: {'phone': phone});
+
+      context.go('/chats/$convId', extra: {
+        'contactName': displayName,
+        'recipientId': userId,
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Error looking up number. Check your connection.';
+        });
+      }
     }
   }
 
@@ -78,18 +108,14 @@ class _ManualContactEntryScreenState extends State<ManualContactEntryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Explanation text
                 Text(
-                  'Contacts permission was not granted. You can still start a '
-                  'conversation by entering a phone number directly.',
+                  'Enter the phone number of the person you want to chat with.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 32),
-
-                // Phone number field
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
@@ -99,13 +125,21 @@ class _ManualContactEntryScreenState extends State<ManualContactEntryScreen> {
                     labelText: 'Phone number (E.164)',
                     hintText: '+14155552671',
                     prefixIcon: Icon(Icons.phone),
-                    helperText: 'Include country code, e.g. +1 for the US.',
+                    helperText: 'Include country code, e.g. +213 for Algeria.',
                   ),
                   validator: _validatePhone,
                 ),
+                if (_errorMessage != null) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    _errorMessage!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
                 const SizedBox(height: 32),
-
-                // Start Chat button
                 if (_isLoading)
                   const Center(child: CircularProgressIndicator())
                 else

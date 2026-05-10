@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:whatsapp2_0/core/result.dart';
 import 'package:whatsapp2_0/core/router/app_router.dart';
 import 'package:whatsapp2_0/features/auth/domain/entities/session.dart';
+import 'package:whatsapp2_0/core/encryption/providers/encryption_providers.dart';
 import 'package:whatsapp2_0/features/auth/presentation/providers/auth_providers.dart';
 
 // ---------------------------------------------------------------------------
@@ -126,6 +127,13 @@ class _OtpNotifier extends Notifier<_OtpState> {
       case Ok(:final value):
         await lockoutTimer.reset();
         state = state.copyWith(status: _VerifyStatus.idle);
+        // Upload Signal Protocol public key bundle so other users can
+        // encrypt messages to this user.
+        final uid = value.userId;
+        if (uid.isNotEmpty) {
+          final keyManager = ref.read(keyManagerProvider);
+          await keyManager.initialize(uid);
+        }
         return value;
       case Err(:final error):
         await lockoutTimer.recordFailure();

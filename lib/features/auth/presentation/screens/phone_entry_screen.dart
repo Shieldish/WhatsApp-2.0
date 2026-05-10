@@ -1,3 +1,4 @@
+import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -69,9 +70,6 @@ final _phoneEntryProvider =
 // Screen
 // ---------------------------------------------------------------------------
 
-/// Phone number entry screen — the first step of the auth flow.
-///
-/// Requirements: 1.1, 1.2
 class PhoneEntryScreen extends ConsumerStatefulWidget {
   const PhoneEntryScreen({super.key});
 
@@ -81,22 +79,18 @@ class PhoneEntryScreen extends ConsumerStatefulWidget {
 
 class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _countryCodeController = TextEditingController(text: '+1');
   final _phoneController = TextEditingController();
-  final _phoneFocusNode = FocusNode();
+  String _dialCode = '+1';
 
   @override
   void dispose() {
-    _countryCodeController.dispose();
     _phoneController.dispose();
-    _phoneFocusNode.dispose();
     super.dispose();
   }
 
   String get _fullPhone {
-    final code = _countryCodeController.text.trim();
     final number = _phoneController.text.trim().replaceAll(RegExp(r'\s+'), '');
-    return '$code$number';
+    return '$_dialCode$number';
   }
 
   Future<void> _onContinue() async {
@@ -140,35 +134,44 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
                 ),
                 const SizedBox(height: 32),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      width: 72,
-                      child: TextFormField(
-                        controller: _countryCodeController,
-                        enabled: !state.isLoading,
-                        keyboardType: TextInputType.phone,
-                        textAlign: TextAlign.center,
-                        decoration: const InputDecoration(labelText: 'Code'),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Required';
-                          if (!RegExp(r'^\+\d{1,3}$').hasMatch(v.trim())) {
-                            return 'Invalid';
-                          }
-                          return null;
+                    // Country picker with flag
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: CountryCodePicker(
+                        onChanged: (code) {
+                          setState(() => _dialCode = code.dialCode ?? '+1');
                         },
+                        initialSelection: 'DZ',
+                        favorite: const ['+213', '+33', '+1'],
+                        showCountryOnly: false,
+                        showOnlyCountryWhenClosed: false,
+                        alignLeft: false,
+                        enabled: !state.isLoading,
+                        textStyle: theme.textTheme.bodyMedium,
+                        dialogSize: const Size(400, 500),
+                        searchDecoration: const InputDecoration(
+                          hintText: 'Search country',
+                          prefixIcon: Icon(Icons.search),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
+                    // Phone number field
                     Expanded(
                       child: TextFormField(
                         controller: _phoneController,
-                        focusNode: _phoneFocusNode,
                         enabled: !state.isLoading,
                         keyboardType: TextInputType.phone,
                         decoration: const InputDecoration(
                           labelText: 'Phone number',
-                          hintText: '(201) 555-0123',
+                          hintText: '555 000 001',
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {

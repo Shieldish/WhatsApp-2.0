@@ -38,15 +38,21 @@ service cloud.firestore {
 
     // Conversations — participants only.
     match /conversations/{conversationId} {
-      allow read, write: if isParticipant(conversationId);
+      // Allow creation if the caller includes themselves in participantIds.
+      allow create: if isSignedIn() &&
+        request.auth.uid in request.resource.data.participantIds;
+      // Allow read/update/delete only for existing participants.
+      allow read, update, delete: if isParticipant(conversationId);
 
       // Messages — participants only.
       match /messages/{messageId} {
-        allow read, write: if isParticipant(conversationId);
+        allow read, write: if isSignedIn() &&
+          request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
 
         // Per-participant delivery receipts.
         match /receipts/{userId} {
-          allow read: if isParticipant(conversationId);
+          allow read: if isSignedIn() &&
+            request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
           allow write: if isOwner(userId);
         }
       }

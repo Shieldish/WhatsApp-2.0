@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:whatsapp2_0/core/result.dart';
+import 'package:whatsapp2_0/core/utils/conversation_id.dart';
 import 'package:whatsapp2_0/features/contacts/domain/entities/app_contact.dart';
 import 'package:whatsapp2_0/features/contacts/presentation/providers/contact_providers.dart';
 import 'package:whatsapp2_0/features/contacts/presentation/screens/manual_contact_entry_screen.dart';
@@ -139,9 +141,12 @@ class _ContactListScreenState extends ConsumerState<ContactListScreen> {
   }
 
   void _onContactTap(AppContact contact) {
-    // Navigate to the chat screen for this contact.
-    // The conversationId for a direct chat is derived from the contact's userId.
-    context.push('/chats/${contact.userId}', extra: contact);
+    final myUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final convId = directConversationId(myUid, contact.userId);
+    context.push('/chats/$convId', extra: {
+      'contactName': contact.displayName,
+      'recipientId': contact.userId,
+    });
   }
 
   void _onGrantPermission() {

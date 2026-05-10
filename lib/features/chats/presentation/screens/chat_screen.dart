@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -70,9 +71,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   /// The message being replied to (for quoting).
   Message? _quotedMessage;
 
+  /// True once the conversation doc is confirmed to exist in Firestore.
+  bool _conversationReady = false;
+
   String get _currentUserId => FirebaseAuth.instance.currentUser?.uid ?? '';
 
-  String get _recipientId => widget.recipientId ?? widget.conversationId;
+  String get _recipientId => widget.recipientId ?? '';
 
   /// Returns true when the current user is restricted from sending messages.
   ///
@@ -98,13 +102,33 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Future<void> _initChat() async {
+    await _ensureConversationExists();
+    if (mounted) setState(() => _conversationReady = true);
+
     final repo = ref.read(messageRepositoryProvider);
-
-    // Mark messages as read when the screen opens.
     await repo.markAsRead(widget.conversationId);
-
-    // Start the delivery receipt listener.
     await repo.startDeliveryReceiptListener(widget.conversationId);
+  }
+
+  /// Creates the Firestore conversation document with participantIds if it
+  /// doesn't exist yet. Required so Firestore security rules allow reads/writes.
+  Future<void> _ensureConversationExists() async {
+    final myUid = _currentUserId;
+    final otherUid = _recipientId;
+    if (myUid.isEmpty || otherUid.isEmpty) return;
+
+    final docRef = FirebaseFirestore.instance
+        .collection('conversations')
+        .doc(widget.conversationId);
+
+    final snap = await docRef.get();
+    if (!snap.exists) {
+      await docRef.set({
+        'participantIds': [myUid, otherUid],
+        'type': 'direct',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
   }
 
   @override
@@ -283,6 +307,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Future<void> _sendMessage() async {
+    if (!_conversationReady) return;
     final text = _textController.text.trim();
     if (text.isEmpty) return;
 

@@ -63,6 +63,9 @@ dependencies:
   permission_handler: ^11.4.0
   flutter_contacts: ^1.1.9+2
 
+  # Country code picker
+  country_code_picker: ^3.0.0
+
   # Media feature
   file_picker: ^8.1.7
   record: ^6.2.0
