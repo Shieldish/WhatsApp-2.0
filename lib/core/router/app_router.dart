@@ -70,6 +70,21 @@ class _PlaceholderScreen extends StatelessWidget {
   }
 }
 
+class _SplashRedirect extends StatelessWidget {
+  const _SplashRedirect();
+
+  @override
+  Widget build(BuildContext context) {
+    // Redirect immediately to phone entry; auth guard wired in Task 22.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.go(AppRoutes.phoneEntry);
+    });
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Router configuration
 // ---------------------------------------------------------------------------
@@ -83,11 +98,11 @@ GoRouter createRouter() {
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: true,
     routes: [
-      // Splash / root — redirects based on auth state (wired in Task 22)
+      // Splash / root — redirects to phone entry (auth guard wired in Task 22)
       GoRoute(
         path: AppRoutes.splash,
         name: 'splash',
-        builder: (context, state) => const _PlaceholderScreen(title: 'Splash'),
+        builder: (context, state) => const _SplashRedirect(),
       ),
 
       // ── Auth flow ──────────────────────────────────────────────────────────
@@ -150,7 +165,8 @@ GoRouter createRouter() {
                 name: 'securityCode',
                 builder: (context, state) {
                   final extra = state.extra as Map<String, dynamic>?;
-                  final contactName = extra?['contactName'] as String? ?? 'Contact';
+                  final contactName =
+                      extra?['contactName'] as String? ?? 'Contact';
                   return SecurityCodeScreen(contactName: contactName);
                 },
               ),
@@ -190,10 +206,7 @@ GoRouter createRouter() {
             builder: (context, state) {
               final userId = state.pathParameters['userId']!;
               final statusId = state.pathParameters['statusId']!;
-              return StatusViewerScreen(
-                userId: userId,
-                statusId: statusId,
-              );
+              return StatusViewerScreen(userId: userId, statusId: statusId);
             },
           ),
         ],

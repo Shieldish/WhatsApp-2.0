@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+    function isParticipant(conversationId) {
+      return isSignedIn() &&
+        request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
+    }
+
+    // Users — readable by any signed-in user, writable only by owner.
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+
+      // FCM tokens — owner only.
+      match /fcmTokens/{token} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Block list — owner only.
+      match /blockedUsers/{targetId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Presence — owner writes, any signed-in user reads.
+    match /presence/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+    }
+
+    // Conversations — participants only.
+    match /conversations/{conversationId} {
+      allow read, write: if isParticipant(conversationId);
+
+      // Messages — participants only.
+      match /messages/{messageId} {
+        allow read, write: if isParticipant(conversationId);
+
+        // Per-participant delivery receipts.
+        match /receipts/{userId} {
+          allow read: if isParticipant(conversationId);
+          allow write: if isOwner(userId);
+        }
+      }
+    }
+
+    // Status updates — any signed-in user reads; owner writes.
+    match /status/{userId}/items/{statusId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+    }
+
+    // WebRTC call signaling — participants only.
+    match /calls/{callId} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}
